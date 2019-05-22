@@ -1,101 +1,70 @@
 Apache2 config in another repo
 
 ```
+
+      
+
+#drupal official installation script
 #!/bin/bash
 
-sudo su
-apt-get update
-apt-get install apache2 -y
-apt-get install -y php5 libapache2-mod-php5 php5-mysqlnd php5-curl php5-gd php5-intl php-pear php5-imagick php5-imap php5-mcrypt php5-memcache php5-ming php5-ps php5-pspell php5-recode php5-snmp php5-sqlite php5-tidy php5-xmlrpc php5-xsl php5-apcu
-a2enmod rewrite ssl
-systemctl restart apache2
-apache2ctl -M | egrep 'ssl|rewrite'
-cd /var/www/html
-echo "<?php phpinfo(); ?>" > info.php
-rm -f /var/www/html/info.php
-apt-get install mysql-server mysql-client -y
+#Install php apache mysql
+sudo apt-get install php libapache2-mod-php php-mysql php-xml php-mysql php-curl php-gd php-imagick php-imap php-mcrypt php-recode php-tidy php-xmlrpc -y
+sudo apt-get update && sudo apt-get dist-upgrade && sudo sudo apt-get autoremove -y
+sudo apt-get install apache2 -y
+sudo apt-get install wget git unzip nano -y
+sudo apt-get install mysql-client-core-5.7 -y
+sudo apt install php7.0-cli -y
+sudo apt-get install php-xml -y
+sudo apt-get install php7.0-common -y
+sudo apt-get install php7.0-gd
+sudo apt-get install php7.0-intl
+sudo apt-get install php7.0-xsl
+sudo apt-get install php-mbstring -y
 
 
-cd /etc/apache2/
-mkdir ssl
-cd ssl/
-sudo openssl req -x509 -nodes -days 365 -newkey rsa:2048 -keyout /etc/apache2/ssl/drupalssl.key -out /etc/apache2/ssl/drupalssl.crt
-chmod 600 *
-
-mkdir -p /var/www/drupal
-cd /etc/apache2/sites-available
-vim drupal.conf
+#start apache
+sudo service apache2 restart
+sudo a2enmod rewrite
+sudo a2enmod env
+sudo a2enmod dir
+sudo a2enmod mime
 
 
-<VirtualHost *:80>
-                ServerName www.mydrupal.co
-                DocumentRoot /var/www/drupal
+#install composer
 
-                # Redirect http to https
-                RedirectMatch 301 (.*) https://www.mydrupal.co$1
-        </VirtualHost>
+php -r "copy('https://getcomposer.org/installer', 'composer-setup.php');"
+php -r "if (hash_file('sha384', 'composer-setup.php') === '48e3236262b34d30969dca3c37281b3b4bbe3221bda826ac6a9a62d6444cdb0dcd0615698a5cbe587c3f0fe57a54d8f5') { echo 'Installer verified'; } else { echo 'Installer corrupt'; unlink('composer-setup.php'); } echo PHP_EOL;"
+php composer-setup.php
+php -r "unlink('composer-setup.php');"
 
-        <VirtualHost _default_:443>
+sudo mv composer.phar /usr/local/bin/composer
 
-                # Server Info
-                #ServerName www.mydrupal.co
-               # ServerAlias mydrupal.co
-               ServerAdmin nfairoza@amazon.com
+#Download Drupal core using Composer
+composer require alchemy/zippy
 
-                # Web root
-                DocumentRoot /var/www/drupal
+composer create-project drupal-composer/drupal-project:8.x-dev drupalsite --no-interaction
 
-                # Log configuration
-                ErrorLog ${APACHE_LOG_DIR}/drupal-error.log
-                CustomLog ${APACHE_LOG_DIR}/drupal-access.log combined
-
-                #   Enable/Disable SSL for this virtual host.
-                SSLEngine on
-
-                # Self signed SSL Certificate file
-                SSLCertificateFile      /etc/apache2/ssl/drupalssl.crt
-                SSLCertificateKeyFile /etc/apache2/ssl/drupalssl.key
-
-                <Directory "/var/www/drupal">
-                        Options FollowSymLinks
-                        AllowOverride All
-                        Require all granted
-                </Directory>
-
-                <FilesMatch "\.(cgi|shtml|phtml|php)$">
-                                SSLOptions +StdEnvVars
-                </FilesMatch>
-                <Directory /usr/lib/cgi-bin>
-                                SSLOptions +StdEnvVars
-                </Directory>
-
-                BrowserMatch "MSIE [2-6]" \
-                                nokeepalive ssl-unclean-shutdown \
-                                downgrade-1.0 force-response-1.0
-                # MSIE 7 and newer should be able to use keepalive
-                BrowserMatch "MSIE [17-9]" ssl-unclean-shutdown
-
-        </VirtualHost>
+composer install --no-dev
+sudo service apache2 restart
+cd ~
+sudo cp drupalsite /var/www/html -r
+sudo rm /var/www/html/index.html
+sudo chmod -R 755 /var/www/html/*
+sudo chown -R www-data:www-data /var/www/html/*
 
 
-apachectl configtest
-a2ensite drupal
-systemctl restart apache2
 
 
-# install Drupal
+http://54.172.12.231/admin/reports/updates/install
 
-apt-get install git drush -y
-cd /var/www/drupal
-drush dl drupal-8
-cp drupal-8.0.1  .
-cd sites/default
-cp default.settings.php settings.php
-cp default.services.yml services.yml
-mkdir files/
-chmod a+w *
-cd /var/www/
-chown -R www-data:www-data drupal/
+
 
 ```
+
+make sure you have proper permissions chmod for your site.
+the database settings are inside settings.php 
+make sure you copy hidden  files (.htaccess)/
+you can change maz upload size or php confis in .htaccess or php.ini file
+enabel manage updates to see install theme button in drupalsite.
+
 
