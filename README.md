@@ -1,6 +1,6 @@
 Apache2 config in another repo
 
-
+```
 #!/bin/bash
 
 sudo su
@@ -97,5 +97,5 @@ chmod a+w *
 cd /var/www/
 chown -R www-data:www-data drupal/
 
-
+```
 
