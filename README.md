@@ -62,9 +62,14 @@ http://54.172.12.231/admin/reports/updates/install
 ```
 
 make sure you have proper permissions chmod for your site.
+
 the database settings are inside settings.php 
-make sure you copy hidden  files (.htaccess)/
+
+make sure you copy hidden  files (.htaccess)
+
 you can change maz upload size or php confis in .htaccess or php.ini file
+
 enabel manage updates to see install theme button in drupalsite.
 
+check apache settings in apache.config . file and also in the drupal.config or default.config file .
 
